@@ -93,8 +93,10 @@ client.post(login_url, data=payload, headers=headers3)
 """
 Example link to print and see if loaded
 """
+"""
 example = client.get("https://www.appannie.com/apps/ios/app/1052231801/", headers=headers3)
 print((example.text).encode('ascii', 'ignore'))
+"""
 
 """
 Check iPhone top 100 page for free, paid, and grossing.
@@ -133,12 +135,10 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 				if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
 					r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 					soup2 = BeautifulSoup(r2.text, "html.parser")
-					print((r2.text).encode('ascii', 'ignore'))
+					# print((r2.text).encode('ascii', 'ignore'))
 
-					"""
 					for row5 in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
 						print((row5.text).encode('ascii', 'ignore'))
-					"""
 
 					test = 0
 
