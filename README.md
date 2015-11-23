@@ -19,5 +19,5 @@ password
 create-iphone-json creates a text.txt and iphone-data.json file
 
 ```
-python create-iphone-json.py
+python create-iphone-json.py > test.txt
 ```
