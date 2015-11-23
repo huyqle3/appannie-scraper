@@ -1,4 +1,4 @@
-# app-store-analysis
+# appannie-scraper
 
 Scripts to scrape AppAnnie for their mobile app data.
 
