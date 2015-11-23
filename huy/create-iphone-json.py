@@ -134,8 +134,8 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					r2 = requests.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 					soup2 = BeautifulSoup(r2.text, "html.parser")
 
-					for row in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
-						print((row.text).encode('ascii', 'ignore'))
+					for row5 in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
+						print((row5.text).encode('ascii', 'ignore'))
 
 					test = 0
 
