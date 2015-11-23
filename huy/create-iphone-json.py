@@ -93,8 +93,8 @@ client.post(login_url, data=payload, headers=headers3)
 """
 Example link to print and see if loaded
 """
-# example = client.get("https://www.appannie.com/apps/ios/app/1052231801/", headers=headers3)
-# print((example.text).encode('ascii', 'ignore'))
+example = client.get("https://www.appannie.com/apps/ios/app/1052231801/", headers=headers3)
+print((example.text).encode('ascii', 'ignore'))
 
 """
 Check iPhone top 100 page for free, paid, and grossing.
