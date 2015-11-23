@@ -7,9 +7,6 @@ import urllib2
 import json
 import argparse
 
-# response = urllib2.urlopen('http://www.appannie.com/apps/ios/top/?device=iphone').read()
-# print(response)
-
 headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Accept-Encoding': 'gzip, deflate, sdch',
 			'Accept-Language': 'en-US,en;q=0.8',
@@ -32,6 +29,9 @@ headers2={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image
 			'Upgrade-Insecure-Requests': '1',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36'}
 
+headers3={'Referer': 'https://www.appannie.com/account/login/',
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36'}
+
 URL = 'https://www.appannie.com/account/login/'
 
 client = requests.session()
@@ -47,17 +47,17 @@ password = credentials[1]
 
 payload = {
 	'csrfmiddlewaretoken': csrftoken,
-	'next': '/',
+	'next': '/dashboard/home/',
 	'username': username,
 	'password': password
 }
 
-r = requests.get("https://www.appannie.com/apps/ios/top/?device=iphone", headers=headers)
+client.post(URL, data=payload, headers=headers3)
 
-client.post(URL, data=payload, headers={'Referer': "https://www.appannie.com/account/login/", 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36'})
-
-r5 = client.get("https://www.appannie.com/apps/ios/app/1052231801/", headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36'})
+r5 = client.get("https://www.appannie.com/apps/ios/app/1052231801/", headers=headers3)
 print((r5.text).encode('ascii', 'ignore'))
+
+r = requests.get("https://www.appannie.com/apps/ios/top/?device=iphone", headers=headers3)
 
 soup = BeautifulSoup(r.text, "html.parser")
 
