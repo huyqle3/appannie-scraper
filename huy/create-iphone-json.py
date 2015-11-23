@@ -131,11 +131,14 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 				print(row4.get('href'))
 
 				if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
-					r2 = requests.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
+					r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 					soup2 = BeautifulSoup(r2.text, "html.parser")
+					print((r2.text).encode('ascii', 'ignore'))
 
+					"""
 					for row5 in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
 						print((row5.text).encode('ascii', 'ignore'))
+					"""
 
 					test = 0
 
