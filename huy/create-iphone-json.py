@@ -1,3 +1,8 @@
+"""
+create-iphone-json.py
+Python script that collects AppAnnie iOS iPhone data from website.
+"""
+
 from bs4 import BeautifulSoup
 import requests
 from requests import session
@@ -7,6 +12,14 @@ import urllib2
 import json
 import argparse
 
+"""
+login_url is required to be able to access AppAnnie app store information
+"""
+login_url = 'https://www.appannie.com/account/login/'
+
+"""
+Sample headers to send with get and post requests.
+"""
 headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Accept-Encoding': 'gzip, deflate, sdch',
 			'Accept-Language': 'en-US,en;q=0.8',
@@ -32,35 +45,66 @@ headers2={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image
 headers3={'Referer': 'https://www.appannie.com/account/login/',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36'}
 
-URL = 'https://www.appannie.com/account/login/'
-
+"""
+client is to visit login url and collect the csrftoken.
+"""
 client = requests.session()
-login = client.get(URL, headers=headers)
+login = client.get(login_url, headers=headers)
 og_soup = BeautifulSoup(login.text, "html.parser")
-csrftoken = og_soup.find("input", value=True)["value"]
+csrf_token = og_soup.find("input", value=True)["value"]
 
+"""
+Create a creds.txt file in the directory.
+Put username on the first line.
+And put password on the second line.
+"""
 with open('creds.txt') as f:
 	credentials = [x.strip('\n') for x in f.readlines()]
-
 username = credentials[0]
 password = credentials[1]
 
+"""
+Testing example iphone page.
+"""
+
+"""
+with open ("example.txt", "r") as iphone_example:
+    example_html = iphone_example.read().replace('\n', '')
+soup2 = BeautifulSoup(example_html, "html.parser")
+for row in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
+	print((row.text).encode('ascii', 'ignore'))
+"""
+
+"""
+We log in with this payload dictionary.
+"""
 payload = {
-	'csrfmiddlewaretoken': csrftoken,
+	'csrfmiddlewaretoken': csrf_token,
 	'next': '/dashboard/home/',
 	'username': username,
 	'password': password
 }
 
-client.post(URL, data=payload, headers=headers3)
+"""
+We send a post request to login.
+"""
+client.post(login_url, data=payload, headers=headers3)
 
-r5 = client.get("https://www.appannie.com/apps/ios/app/1052231801/", headers=headers3)
-print((r5.text).encode('ascii', 'ignore'))
+"""
+Example link to print and see if loaded
+"""
+# example = client.get("https://www.appannie.com/apps/ios/app/1052231801/", headers=headers3)
+# print((example.text).encode('ascii', 'ignore'))
 
+"""
+Check iPhone top 100 page for free, paid, and grossing.
+"""
 r = requests.get("https://www.appannie.com/apps/ios/top/?device=iphone", headers=headers3)
-
 soup = BeautifulSoup(r.text, "html.parser")
 
+"""
+Load the order of Free, Paid, Grossing, and order of ranks.
+"""
 category = ["Free", "Paid", "Grossing"]
 rank_counter = [1, 1, 1]
 position = 0
@@ -70,6 +114,9 @@ test = 1
 
 apps = {}
 
+"""
+Parse the ranking list of iPhone page for top 100.
+"""
 for row in soup.find_all('tr', class_=["odd", "even"]):
 	for row2 in row.find_all('div', class_="main-info"):
 		for row3 in row2.find_all('span', class_="oneline-info"):
@@ -84,15 +131,12 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 				print(row4.get('href'))
 
 				if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
-					r2 = requests.get("https://www.appannie.com" + row4.get('href'), headers=headers)
+					r2 = requests.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 					soup2 = BeautifulSoup(r2.text, "html.parser")
 
-					"""
-					for row in soup2.find_all('div'):
-						print(row)
-					"""
+					for row in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
+						print((row.text).encode('ascii', 'ignore'))
 
-					# print((r2.text).encode('ascii', 'ignore'))
 					test = 0
 
 				if(switch == 1):
@@ -101,8 +145,9 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					if (position == 3):
 						position = 0
 
-# print(soup.prettify())
-
+"""
+Set example for create the iphone-data.json from an example dictionary.
+"""
 data = {1: 'a', 2: 'b', 3: 'c'}
 
 with open('iphone-data.json', 'w') as output:
