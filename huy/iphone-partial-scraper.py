@@ -1,5 +1,5 @@
 """
-create-iphone-json.py
+iphone-partial-scraper.py
 Python script that collects AppAnnie iOS iPhone data from website.
 """
 
@@ -10,6 +10,7 @@ import cookielib
 
 import urllib2
 import json
+import sys
 import argparse
 
 """
@@ -107,9 +108,12 @@ print((example.text).encode('ascii', 'ignore'))
 """
 
 """
-Check iPhone top 100 page for free, paid, and grossing.
+Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
 """
 r = requests.get("https://www.appannie.com/apps/ios/top/?device=iphone", headers=headers3)
+if (r.status_code == 403):
+	print(r.status_code)
+	sys.exit(0)
 soup = BeautifulSoup(r.text, "html.parser")
 
 """
