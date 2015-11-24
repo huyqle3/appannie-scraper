@@ -8,6 +8,7 @@ import requests
 from requests import session
 import cookielib
 
+from datetime import datetime
 import urllib2
 import json
 import sys
@@ -67,6 +68,7 @@ password = credentials[1]
 """
 Testing example iphone page, parsing for information that requires username and password.
 """
+"""
 with open ("example.txt", "r") as iphone_example:
     example_html = iphone_example.read().replace('\n', '')
 
@@ -83,6 +85,7 @@ for row5 in soup2.find_all('div', class_="app-box-content"):
 			print((row6.text).encode('ascii', 'ignore'))
 		if((row6.text).startswith("Updated")):
 			print((row6.text).encode('ascii', 'ignore'))
+"""
 
 """
 We log in with this payload dictionary.
@@ -120,6 +123,9 @@ soup = BeautifulSoup(r.text, "html.parser")
 Load the order of Free, Paid, Grossing, and order of ranks.
 """
 category = ["Free", "Paid", "Grossing"]
+app_or_publisher = ["App", "Publisher", "Test"]
+ap_position = 0
+
 rank_counter = [1, 1, 1]
 position = 0
 
@@ -133,16 +139,30 @@ Parse the ranking list of iPhone page for top 100.
 """
 for row in soup.find_all('tr', class_=["odd", "even"]):
 	for row2 in row.find_all('div', class_="main-info"):
+		app_ranking = {}
+		app_metadata = {}
+		# print(row2)
 		for row3 in row2.find_all('span', class_="oneline-info"):
 			for row4 in row3.find_all('a'):
 				if(switch == 1):
-					print(category[position])
-					print(rank_counter[position])
+					# print(category[position])
+					app_metadata.update({"Type": category[position]})
+					# print(rank_counter[position])
+					app_ranking.update({datetime.now().strftime('%Y-%m-%d'): rank_counter[position]})
+					app_metadata.update({"Ranking": app_ranking})
 					switch = 0
 				else:
 					switch = 1
-				print((row4.text).encode('ascii', 'ignore'))
-				print(row4.get('href'))
+
+				if(ap_position == 0):
+					app_name = (row4.text).encode('ascii', 'ignore')
+					app_metadata.update({"App Link": row4.get('href')})
+					# print(apps)
+					ap_position += 1
+				else:
+					app_metadata.update({"Publisher": (row4.text).encode('ascii', 'ignore')})
+					app_metadata.update({"Publisher Link": row4.get('href')})
+					ap_position = 0
 
 				if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
 					"""
@@ -168,11 +188,10 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					position += 1
 					if (position == 3):
 						position = 0
+		apps.update({app_name: app_metadata})
+		# print(app_metadata)
 
-"""
-Set example for create the iphone-data.json from an example dictionary.
-"""
-data = {1: 'a', 2: 'b', 3: 'c'}
+# print(apps)
 
 with open('iphone-data.json', 'w') as output:
-	json.dump(data, output)
+	json.dump(apps, output)
