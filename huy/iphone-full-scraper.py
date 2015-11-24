@@ -15,6 +15,25 @@ import sys
 import argparse
 
 """
+Arguments
+"""
+current_date = datetime.now().strftime('%Y-%m-%d')
+
+parser = argparse.ArgumentParser(description='Scrape AppAnnie rankings at a certain date.')
+parser.add_argument("--date", nargs='?', default=current_date, help="Enter date")
+
+args = parser.parse_args()
+
+def validate(date_text):
+    try:
+        datetime.strptime(date_text, '%Y-%m-%d')
+    except ValueError:
+        raise ValueError("Incorrect data format. Should be YYYY-MM-DD")
+
+validate(args.date)
+print(args.date)
+
+"""
 login_url is required to be able to access AppAnnie app store information
 """
 login_url = 'https://www.appannie.com/account/login/'
@@ -113,11 +132,12 @@ print((example.text).encode('ascii', 'ignore'))
 """
 Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
 """
-r = requests.get("https://www.appannie.com/apps/ios/top/?device=iphone", headers=headers3)
+r = requests.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + args.date, headers=headers3)
 if (r.status_code == 403):
 	print(r.status_code)
 	sys.exit(0)
 soup = BeautifulSoup(r.text, "html.parser")
+# print((soup.text).encode('ascii', 'ignore'))
 
 """
 Load the order of Free, Paid, Grossing, and order of ranks.
@@ -148,7 +168,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					# print(category[position])
 					app_metadata.update({"Type": category[position]})
 					# print(rank_counter[position])
-					app_ranking.update({datetime.now().strftime('%Y-%m-%d'): rank_counter[position]})
+					app_ranking.update({args.date: rank_counter[position]})
 					app_metadata.update({"Ranking": app_ranking})
 					switch = 0
 				else:
@@ -193,5 +213,5 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 # print(apps)
 
-with open('iphone-data.json', 'w') as output:
+with open('iphone-data-' + args.date + '.json', 'w') as output:
 	json.dump(apps, output)
