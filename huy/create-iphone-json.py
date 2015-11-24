@@ -64,16 +64,24 @@ username = credentials[0]
 password = credentials[1]
 
 """
-Testing example iphone page.
-"""
-
+Testing example iphone page, parsing for information that requires username and password.
 """
 with open ("example.txt", "r") as iphone_example:
     example_html = iphone_example.read().replace('\n', '')
+
 soup2 = BeautifulSoup(example_html, "html.parser")
-for row in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
-	print((row.text).encode('ascii', 'ignore'))
-"""
+for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
+	# print((row.text).encode('ascii', 'ignore'))
+	metadata = row5.text
+	parsed_metadata = metadata.replace('\r', '')
+	print(parsed_metadata.split())
+
+for row5 in soup2.find_all('div', class_="app-box-content"):
+	for row6 in row5.find_all('p'):
+		if((row6.text).startswith("Category")):
+			print((row6.text).encode('ascii', 'ignore'))
+		if((row6.text).startswith("Updated")):
+			print((row6.text).encode('ascii', 'ignore'))
 
 """
 We log in with this payload dictionary.
@@ -133,13 +141,22 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 				print(row4.get('href'))
 
 				if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
+					"""
 					r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 					soup2 = BeautifulSoup(r2.text, "html.parser")
-					# print((r2.text).encode('ascii', 'ignore'))
+					for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
+						# print((row.text).encode('ascii', 'ignore'))
+						metadata = row5.text
+						parsed_metadata = metadata.replace('\r', '')
+						print(parsed_metadata.split())
 
-					for row5 in soup2.find_all('div', class_=["app_slide_content", "app-box-content"]):
-						print((row5.text).encode('ascii', 'ignore'))
-
+					for row5 in soup2.find_all('div', class_="app-box-content"):
+						for row6 in row5.find_all('p'):
+							if((row6.text).startswith("Category")):
+								print((row6.text).encode('ascii', 'ignore'))
+							if((row6.text).startswith("Updated")):
+								print((row6.text).encode('ascii', 'ignore'))
+					"""
 					test = 0
 
 				if(switch == 1):
