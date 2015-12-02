@@ -1,0 +1,37 @@
+{
+   "Empires & Allies":{
+      "Ranking":{
+         "2015-12-02":72
+      },
+      "Current Version Ratings":{
+         "4.0":{
+            "total_ratings":"2730",
+            "average":"4.2",
+            "five_star":"1920",
+            "four_star":"500",
+            "three_star":"250",
+            "two_star":"50",
+            "one_star":"10"
+         }
+      },
+      "Overall Ratings":{
+         "total_ratings":"5620",
+         "average":"4.5",
+         "five_star":"4000",
+         "four_star":"1000",
+         "three_star":"500",
+         "two_star":"100",
+         "one_star":"20"
+      },
+      "Featured in iPhone Market":{
+         "iTunes Home Page":"10",
+         "iTunes":"33"
+      },
+      "Category":"Games",
+      "Last Updated":"2015-11-12",
+      "Publisher":"Zynga Inc.",
+      "Type":"Grossing",
+      "Publisher Link":"/apps/ios/publisher/zynga-inc./",
+      "App Link":"/apps/ios/app/empires-allies/"
+   }
+}

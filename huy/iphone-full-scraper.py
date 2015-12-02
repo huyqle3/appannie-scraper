@@ -87,7 +87,53 @@ password = credentials[1]
 """
 Testing example iphone page, parsing for information that requires username and password.
 """
+
 """
+app_name = {}
+app_metadata = {"Ranking": 
+{"2015-12-02": 72},
+"Current Version Ratings": {
+	"4.0": {
+		"total ratings": "2730",
+		"average": "4.2",
+		"five_star": "1920",
+		"four_star": "500",
+		"three_star": "250",
+		"two_star": "50",
+		"one_star": "10"
+	}
+},
+"Overall Ratings": {
+	"total ratings": "5620",
+	"average": "4.5",
+	"five_star": "4000",
+	"four_star": "1000",
+	"three_star": "500",
+	"two_star": "100",
+	"one_star": "20"
+},
+"Featured in iPhone Market": {
+	"iTunes Home Page": "10",
+	"iTunes": "33"
+},
+"Category": "Games",
+"Last Updated": "2015-11-12",
+"Publisher": "Zynga Inc.",
+"Type": "Grossing",
+"Publisher Link":
+"/apps/ios/publisher/zynga-inc./",
+"App Link": "/apps/ios/app/empires-allies/"}
+
+{"Empires & Allies": 
+{"Ranking": 
+{"2015-12-02": 72}, 
+"Publisher": "Zynga Inc.",
+"Type": "Grossing",
+"Publisher Link":
+"/apps/ios/publisher/zynga-inc./",
+"App Link": "/apps/ios/app/empires-allies/"}}
+"""
+
 with open ("example.txt", "r") as iphone_example:
     example_html = iphone_example.read().replace('\n', '')
 
@@ -104,7 +150,6 @@ for row5 in soup2.find_all('div', class_="app-box-content"):
 			print((row6.text).encode('ascii', 'ignore'))
 		if((row6.text).startswith("Updated")):
 			print((row6.text).encode('ascii', 'ignore'))
-"""
 
 """
 We log in with this payload dictionary.
@@ -157,6 +202,7 @@ apps = {}
 """
 Parse the ranking list of iPhone page for top 100.
 """
+"""
 for row in soup.find_all('tr', class_=["odd", "even"]):
 	for row2 in row.find_all('div', class_="main-info"):
 		app_ranking = {}
@@ -186,6 +232,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 				if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
 					"""
+"""
 					r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 					soup2 = BeautifulSoup(r2.text, "html.parser")
 					for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
@@ -201,6 +248,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 							if((row6.text).startswith("Updated")):
 								print((row6.text).encode('ascii', 'ignore'))
 					"""
+"""
 					test = 0
 
 				if(switch == 1):
@@ -210,8 +258,10 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 						position = 0
 		apps.update({app_name: app_metadata})
 		# print(app_metadata)
-
+"""
 # print(apps)
 
+"""
 with open('iphone-data-' + args.date + '.json', 'w') as output:
 	json.dump(apps, output)
+"""
