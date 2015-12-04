@@ -72,6 +72,11 @@ client is to visit login url and collect the csrftoken.
 client = requests.session()
 login = client.get(login_url, headers=headers)
 og_soup = BeautifulSoup(login.text, "html.parser")
+if "captcha_1" in login.text:
+	print("Captcha required. Log-in failed.")
+	sys.exit(0)
+# print((login.text).encode('ascii', 'ignore'))
+
 csrf_token = og_soup.find("input", value=True)["value"]
 
 """
@@ -88,10 +93,10 @@ password = credentials[1]
 Testing example iphone page, parsing for information that requires username and password.
 """
 
-app_name = {}
-"""
-Example structure
+# app_name = {}
 
+# Example structure
+"""
 app_metadata = {"Ranking": 
 {"2015-12-02": 72},
 "Current Version Ratings": {
@@ -126,7 +131,7 @@ app_metadata = {"Ranking":
 "/apps/ios/publisher/zynga-inc./",
 "App Link": "/apps/ios/app/empires-allies/"}
 """
-
+"""
 app_ranking = {"Ranking": 
 {"2015-12-02": 72}}
 
@@ -137,7 +142,6 @@ app_metadata = {"Publisher": "Zynga Inc.",
 "App Link": "/apps/ios/app/empires-allies/"}
 
 app_metadata.update(app_ranking)
-
 
 with open ("example.txt", "r") as iphone_example:
     example_html = iphone_example.read().replace('\n', '')
@@ -184,8 +188,8 @@ if "Empires & Allies" in app_name:
 				# print(divided)
 
 app_name.update({"Empires & Allies": app_metadata})
-
 print(app_name)
+"""
 
 """
 We log in with this payload dictionary.
@@ -238,7 +242,6 @@ apps = {}
 """
 Parse the ranking list of iPhone page for top 100.
 """
-"""
 for row in soup.find_all('tr', class_=["odd", "even"]):
 	for row2 in row.find_all('div', class_="main-info"):
 		app_ranking = {}
@@ -258,44 +261,48 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 				if(ap_position == 0):
 					app_name = (row4.text).encode('ascii', 'ignore')
-					app_metadata.update({"App Link": row4.get('href')})
+					app_metadata.update({"App Link": (row4.get('href')).encode('ascii', 'ignore')})
 					# print(apps)
 					ap_position += 1
 				else:
 					app_metadata.update({"Publisher": (row4.text).encode('ascii', 'ignore')})
-					app_metadata.update({"Publisher Link": row4.get('href')})
+					app_metadata.update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
+					apps.update({app_name: app_metadata})
 					ap_position = 0
 
-				if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
-					"""
-"""
-					r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
-					soup2 = BeautifulSoup(r2.text, "html.parser")
-					for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
-						# print((row.text).encode('ascii', 'ignore'))
-						metadata = row5.text
-						parsed_metadata = metadata.replace('\r', '')
-						print(parsed_metadata.split())
+				if(app_name in apps):
+					if(row4.get('href').startswith("/apps/ios/app/") and test == 1 and ap_position == 0):
+						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
+						soup2 = BeautifulSoup(r2.text, "html.parser")
+						print(r2.text).encode('ascii', 'ignore')
+						# for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
+							# print((row5.text).encode('ascii', 'ignore'))
+						"""
+							metadata = row5.text
+							parsed_metadata = metadata.replace('\r', '')
+							print(parsed_metadata.split())
+							"""
 
-					for row5 in soup2.find_all('div', class_="app-box-content"):
-						for row6 in row5.find_all('p'):
-							if((row6.text).startswith("Category")):
-								print((row6.text).encode('ascii', 'ignore'))
-							if((row6.text).startswith("Updated")):
-								print((row6.text).encode('ascii', 'ignore'))
-					"""
-"""
-					test = 0
+						"""
+						for row5 in soup2.find_all('div', class_="app-box-content"):
+							for row6 in row5.find_all('p'):
+								if((row6.text).startswith("Category")):
+									print((row6.text).encode('ascii', 'ignore'))
+								if((row6.text).startswith("Updated")):
+									print((row6.text).encode('ascii', 'ignore'))
+						"""
+
+						test = 0
 
 				if(switch == 1):
 					rank_counter[position] += 1
 					position += 1
 					if (position == 3):
 						position = 0
-		apps.update({app_name: app_metadata})
+		# apps.update({app_name: app_metadata})
 		# print(app_metadata)
-"""
-# print(apps)
+
+print(apps)
 
 """
 with open('iphone-data-' + args.date + '.json', 'w') as output:
