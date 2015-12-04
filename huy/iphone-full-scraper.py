@@ -88,8 +88,10 @@ password = credentials[1]
 Testing example iphone page, parsing for information that requires username and password.
 """
 
-"""
 app_name = {}
+"""
+Example structure
+
 app_metadata = {"Ranking": 
 {"2015-12-02": 72},
 "Current Version Ratings": {
@@ -123,33 +125,65 @@ app_metadata = {"Ranking":
 "Publisher Link":
 "/apps/ios/publisher/zynga-inc./",
 "App Link": "/apps/ios/app/empires-allies/"}
+"""
 
-{"Empires & Allies": 
-{"Ranking": 
-{"2015-12-02": 72}, 
-"Publisher": "Zynga Inc.",
+app_ranking = {"Ranking": 
+{"2015-12-02": 72}}
+
+app_metadata = {"Publisher": "Zynga Inc.",
 "Type": "Grossing",
 "Publisher Link":
 "/apps/ios/publisher/zynga-inc./",
-"App Link": "/apps/ios/app/empires-allies/"}}
-"""
+"App Link": "/apps/ios/app/empires-allies/"}
+
+app_metadata.update(app_ranking)
+
 
 with open ("example.txt", "r") as iphone_example:
     example_html = iphone_example.read().replace('\n', '')
-
 soup2 = BeautifulSoup(example_html, "html.parser")
+
+deep_metadata_count = 0
+
 for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
 	# print((row.text).encode('ascii', 'ignore'))
 	metadata = row5.text
-	parsed_metadata = metadata.replace('\r', '')
-	print(parsed_metadata.split())
+	parsed_metadata = (metadata.replace('\r', '')).split()
+	if deep_metadata_count == 1:
+		app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+	if deep_metadata_count == 3:
+		app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+	if deep_metadata_count == 4:
+		current_version = parsed_metadata[3]
+		app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
+	if deep_metadata_count == 5:
+		app_metadata.update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+			"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}}})
+	if deep_metadata_count == 6:
+		app_metadata.update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
+	if deep_metadata_count == 7:
+		app_metadata.update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+			"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}})	
+	deep_metadata_count += 1
+
+deep_metadata_count = 0
 
 for row5 in soup2.find_all('div', class_="app-box-content"):
 	for row6 in row5.find_all('p'):
 		if((row6.text).startswith("Category")):
-			print((row6.text).encode('ascii', 'ignore'))
+			divided = (row6.text).split(': ')
+			# print((row6.text).encode('ascii', 'ignore'))
+			app_metadata.update({"Category": divided[1]})
+			# print(divided)
 		if((row6.text).startswith("Updated")):
-			print((row6.text).encode('ascii', 'ignore'))
+			divided = (row6.text).split(': ')
+			# print((row6.text).encode('ascii', 'ignore'))
+			app_metadata.update({"Category": divided[1]})
+			# print(divided)
+
+app_name.update({"Empires & Allies": app_metadata})
+
+print(app_name)
 
 """
 We log in with this payload dictionary.
