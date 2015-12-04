@@ -143,43 +143,45 @@ with open ("example.txt", "r") as iphone_example:
     example_html = iphone_example.read().replace('\n', '')
 soup2 = BeautifulSoup(example_html, "html.parser")
 
+app_name.update({"Empires & Allies": app_metadata})
 deep_metadata_count = 0
 
-for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
-	# print((row.text).encode('ascii', 'ignore'))
-	metadata = row5.text
-	parsed_metadata = (metadata.replace('\r', '')).split()
-	if deep_metadata_count == 1:
-		app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
-	if deep_metadata_count == 3:
-		app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
-	if deep_metadata_count == 4:
-		current_version = parsed_metadata[3]
-		app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
-	if deep_metadata_count == 5:
-		app_metadata.update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
-			"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}}})
-	if deep_metadata_count == 6:
-		app_metadata.update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
-	if deep_metadata_count == 7:
-		app_metadata.update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
-			"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}})	
-	deep_metadata_count += 1
+if "Empires & Allies" in app_name:
+	for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
+		# print((row.text).encode('ascii', 'ignore'))
+		metadata = (row5.text).encode('ascii', 'ignore')
+		parsed_metadata = (metadata.replace('\r', '')).split()
+		if deep_metadata_count == 1:
+			app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+		if deep_metadata_count == 3:
+			app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+		if deep_metadata_count == 4:
+			current_version = parsed_metadata[3]
+			app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
+		if deep_metadata_count == 5:
+			app_metadata.update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+				"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}}})
+		if deep_metadata_count == 6:
+			app_metadata.update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
+		if deep_metadata_count == 7:
+			app_metadata.update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+				"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}})	
+		deep_metadata_count += 1
 
-deep_metadata_count = 0
+	deep_metadata_count = 0
 
-for row5 in soup2.find_all('div', class_="app-box-content"):
-	for row6 in row5.find_all('p'):
-		if((row6.text).startswith("Category")):
-			divided = (row6.text).split(': ')
-			# print((row6.text).encode('ascii', 'ignore'))
-			app_metadata.update({"Category": divided[1]})
-			# print(divided)
-		if((row6.text).startswith("Updated")):
-			divided = (row6.text).split(': ')
-			# print((row6.text).encode('ascii', 'ignore'))
-			app_metadata.update({"Category": divided[1]})
-			# print(divided)
+	for row5 in soup2.find_all('div', class_="app-box-content"):
+		for row6 in row5.find_all('p'):
+			if((row6.text).startswith("Category")):
+				divided = ((row6.text).encode('ascii', 'ignore')).split(': ')
+				# print((row6.text).encode('ascii', 'ignore'))
+				app_metadata.update({"Category": divided[1]})
+				# print(divided)
+			if((row6.text).startswith("Updated")):
+				divided = (row6.text).split(': ')
+				# print((row6.text).encode('ascii', 'ignore'))
+				app_metadata.update({"Last Updated": divided[1]})
+				# print(divided)
 
 app_name.update({"Empires & Allies": app_metadata})
 
