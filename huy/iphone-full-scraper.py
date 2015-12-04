@@ -72,7 +72,7 @@ client is to visit login url and collect the csrftoken.
 client = requests.session()
 login = client.get(login_url, headers=headers)
 og_soup = BeautifulSoup(login.text, "html.parser")
-if "captcha" in login.text:
+if "captcha" in (login.text).encode('ascii', 'ignore'):
 	print("Captcha required. Log-in failed.")
 	sys.exit(0)
 # print((login.text).encode('ascii', 'ignore'))
@@ -272,11 +272,10 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 				if(app_name in apps):
 					deep_metadata_count = 0
-
 					if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
 						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 						soup2 = BeautifulSoup(r2.text, "html.parser")
-						# print(r2.text).encode('ascii', 'ignore')
+						print(r2.text).encode('ascii', 'ignore')
 
 						for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
 							# print((row.text).encode('ascii', 'ignore'))
