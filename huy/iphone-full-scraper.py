@@ -72,7 +72,7 @@ client is to visit login url and collect the csrftoken.
 client = requests.session()
 login = client.get(login_url, headers=headers)
 og_soup = BeautifulSoup(login.text, "html.parser")
-if "captcha_1" in login.text:
+if "captcha" in login.text:
 	print("Captcha required. Log-in failed.")
 	sys.exit(0)
 # print((login.text).encode('ascii', 'ignore'))
@@ -271,27 +271,48 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					ap_position = 0
 
 				if(app_name in apps):
-					if(row4.get('href').startswith("/apps/ios/app/") and test == 1 and ap_position == 0):
+					deep_metadata_count = 0
+
+					if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
 						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 						soup2 = BeautifulSoup(r2.text, "html.parser")
-						print(r2.text).encode('ascii', 'ignore')
-						# for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
-							# print((row5.text).encode('ascii', 'ignore'))
-						"""
-							metadata = row5.text
-							parsed_metadata = metadata.replace('\r', '')
-							print(parsed_metadata.split())
-							"""
+						# print(r2.text).encode('ascii', 'ignore')
 
-						"""
+						for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
+							# print((row.text).encode('ascii', 'ignore'))
+							metadata = (row5.text).encode('ascii', 'ignore')
+							parsed_metadata = (metadata.replace('\r', '')).split()
+							if deep_metadata_count == 1:
+								app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+							if deep_metadata_count == 3:
+								app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+							if deep_metadata_count == 4:
+								current_version = parsed_metadata[3]
+								app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
+							if deep_metadata_count == 5:
+								app_metadata.update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+									"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}}})
+							if deep_metadata_count == 6:
+								app_metadata.update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
+							if deep_metadata_count == 7:
+								app_metadata.update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+									"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}})	
+							deep_metadata_count += 1
+
 						for row5 in soup2.find_all('div', class_="app-box-content"):
 							for row6 in row5.find_all('p'):
 								if((row6.text).startswith("Category")):
-									print((row6.text).encode('ascii', 'ignore'))
+									divided = ((row6.text).encode('ascii', 'ignore')).split(': ')
+									# print((row6.text).encode('ascii', 'ignore'))
+									app_metadata.update({"Category": divided[1]})
+									# print(divided)
 								if((row6.text).startswith("Updated")):
-									print((row6.text).encode('ascii', 'ignore'))
-						"""
+									divided = (row6.text).split(': ')
+									# print((row6.text).encode('ascii', 'ignore'))
+									app_metadata.update({"Last Updated": divided[1]})
+									# print(divided)
 
+						apps.update({app_name: app_metadata})
 						test = 0
 
 				if(switch == 1):
