@@ -283,8 +283,10 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 						
 						# print(r2.text).encode('ascii', 'ignore')
 						if(((r2.text).encode('ascii', 'ignore')).startswith('<!DOCTYPE html>\n<html lang="en" xmlns:og="http://ogp.me/ns#">')):
-							print("Incorrect app page without extra information. Something must have gone wrong.")
+							print("Incorrect app page without the right information. Something must have gone wrong.")
 							break
+						else:
+							print("App page: " + (row4.get('href')).encode('ascii', 'ignore') + " hit correctly.")
 
 						for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
 							# print((row5.text).encode('ascii', 'ignore'))
