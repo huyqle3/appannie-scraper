@@ -76,6 +76,8 @@ og_soup = BeautifulSoup(login.text, "html.parser")
 if "captcha" in (login.text).encode('ascii', 'ignore'):
 	print("Captcha required. Log-in failed.")
 	sys.exit(0)
+else:
+	print('Login should have succeeded. Proceeding.')
 # print((login.text).encode('ascii', 'ignore'))
 
 csrf_token = og_soup.find("input", value=True)["value"]
@@ -205,7 +207,8 @@ payload = {
 """
 We send a post request to login.
 """
-client.post(login_url, data=payload, headers=headers3)
+login_post = client.post(login_url, data=payload, headers=headers3)
+print("Login response is: " + login_post.status_code)
 
 """
 Example link to print and see if loaded
@@ -222,6 +225,8 @@ r = requests.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=ipho
 if (r.status_code == 403):
 	print(r.status_code)
 	sys.exit(0)
+else:
+	("GET requrest " + args.date + " url proceeded correctly.")
 soup = BeautifulSoup(r.text, "html.parser")
 # print((soup.text).encode('ascii', 'ignore'))
 
@@ -274,7 +279,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 				if(app_name in apps):
 					deep_metadata_count = 0
-					if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
+					if(row4.get('href').startswith("/apps/ios/app/")):
 						print("App page found. Waiting 10 seconds before GET request to app page.")
 						time.sleep(10)
 
@@ -328,7 +333,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 									# print(divided)
 
 						apps.update({app_name: app_metadata})
-						test = 0
+						# test = 0
 
 				if(switch == 1):
 					rank_counter[position] += 1
