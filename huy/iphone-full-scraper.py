@@ -13,6 +13,7 @@ import urllib2
 import json
 import sys
 import argparse
+import time
 
 """
 Arguments
@@ -273,10 +274,12 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 				if(app_name in apps):
 					deep_metadata_count = 0
-					if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
+					if(row4.get('href').startswith("/apps/ios/app/")):
+						print("App page found. Waiting 10 seconds before GET request to app page.")
+						time.sleep(10)
 						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 						soup2 = BeautifulSoup(r2.text, "html.parser")
-						print(r2.text).encode('ascii', 'ignore')
+						# print(r2.text).encode('ascii', 'ignore')
 
 						for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
 							# print((row5.text).encode('ascii', 'ignore'))
@@ -313,7 +316,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 									# print(divided)
 
 						apps.update({app_name: app_metadata})
-						test = 0
+						# test = 0
 
 				if(switch == 1):
 					rank_counter[position] += 1
@@ -325,7 +328,5 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 print(apps)
 
-"""
 with open('iphone-data-' + args.date + '.json', 'w') as output:
 	json.dump(apps, output)
-"""
