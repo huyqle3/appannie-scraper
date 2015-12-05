@@ -249,6 +249,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 		# print(row2)
 		for row3 in row2.find_all('span', class_="oneline-info"):
 			for row4 in row3.find_all('a'):
+				print((row4.text).encode('ascii', 'ignore'))
 				if(switch == 1):
 					# print(category[position])
 					app_metadata.update({"Type": category[position]})
@@ -275,10 +276,10 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					if(row4.get('href').startswith("/apps/ios/app/") and test == 1):
 						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 						soup2 = BeautifulSoup(r2.text, "html.parser")
-						print(r2.text).encode('ascii', 'ignore')
+						# print(r2.text).encode('ascii', 'ignore')
 
 						for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
-							# print((row.text).encode('ascii', 'ignore'))
+							# print((row5.text).encode('ascii', 'ignore'))
 							metadata = (row5.text).encode('ascii', 'ignore')
 							parsed_metadata = (metadata.replace('\r', '')).split()
 							if deep_metadata_count == 1:
