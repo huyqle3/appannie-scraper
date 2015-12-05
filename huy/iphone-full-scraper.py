@@ -280,6 +280,11 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 
 						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
 						soup2 = BeautifulSoup(r2.text, "html.parser")
+
+						if (r2.status_code == 403):
+							print("App page received a: " + r2.status_code + " on date, " + args.date)
+							print((row4.get('href')).encode('ascii', 'ignore'))
+							sys.exit(0)
 						
 						# print(r2.text).encode('ascii', 'ignore')
 						if(((r2.text).encode('ascii', 'ignore')).startswith('<!DOCTYPE html>\n<html lang="en" xmlns:og="http://ogp.me/ns#">')):
