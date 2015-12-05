@@ -208,7 +208,7 @@ payload = {
 We send a post request to login.
 """
 login_post = client.post(login_url, data=payload, headers=headers3)
-print("Login response is: " + login_post.status_code)
+print("Login response is: " + str(login_post.status_code))
 
 """
 Example link to print and see if loaded
@@ -221,12 +221,12 @@ print((example.text).encode('ascii', 'ignore'))
 """
 Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
 """
-r = requests.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + args.date, headers=headers3)
+r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + args.date, headers=headers3)
 if (r.status_code == 403):
 	print(r.status_code)
 	sys.exit(0)
 else:
-	("GET requrest " + args.date + " url proceeded correctly.")
+	("GET requrest " + str(args.date) + " url proceeded correctly.")
 soup = BeautifulSoup(r.text, "html.parser")
 # print((soup.text).encode('ascii', 'ignore'))
 
@@ -270,14 +270,14 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					app_name = (row4.text).encode('ascii', 'ignore')
 					app_metadata.update({"App Link": (row4.get('href')).encode('ascii', 'ignore')})
 					# print(apps)
-					apps.update({app_name: app_metadata})
+					# apps.update({app_name: app_metadata})
 					ap_position += 1
 				else:
 					app_metadata.update({"Publisher": (row4.text).encode('ascii', 'ignore')})
 					app_metadata.update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
 					ap_position = 0
 
-				if(app_name in apps):
+				if(app_name not in apps):
 					deep_metadata_count = 0
 					if(row4.get('href').startswith("/apps/ios/app/")):
 						print("App page found. Waiting 10 seconds before GET request to app page.")
@@ -287,7 +287,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 						soup2 = BeautifulSoup(r2.text, "html.parser")
 
 						if (r2.status_code == 403):
-							print("App page received a: " + r2.status_code + " on date, " + args.date)
+							print("App page received a: " + str(r2.status_code) + " on date, " + str(args.date))
 							print((row4.get('href')).encode('ascii', 'ignore'))
 							sys.exit(0)
 						
@@ -302,10 +302,14 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 							# print((row5.text).encode('ascii', 'ignore'))
 							metadata = (row5.text).encode('ascii', 'ignore')
 							parsed_metadata = (metadata.replace('\r', '')).split()
+							if not parsed_metadata:
+								continue
 							if deep_metadata_count == 1:
-								app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+								if len(parsed_metadata) >= 8:
+									app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
 							if deep_metadata_count == 3:
-								app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+								if len(parsed_metadata) >= 8:
+									app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
 							if deep_metadata_count == 4:
 								current_version = parsed_metadata[3]
 								app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
@@ -332,7 +336,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 									app_metadata.update({"Last Updated": divided[1]})
 									# print(divided)
 
-						apps.update({app_name: app_metadata})
+						# apps.update({app_name: app_metadata})
 						# test = 0
 
 				if(switch == 1):
@@ -340,7 +344,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 					position += 1
 					if (position == 3):
 						position = 0
-		# apps.update({app_name: app_metadata})
+		apps.update({app_name: app_metadata})
 		# print(app_metadata)
 
 # print(apps)
