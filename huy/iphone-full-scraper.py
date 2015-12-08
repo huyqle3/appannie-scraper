@@ -22,6 +22,7 @@ current_date = datetime.now().strftime('%Y-%m-%d')
 
 parser = argparse.ArgumentParser(description='Scrape AppAnnie rankings at a certain date.')
 parser.add_argument("--date", nargs='?', default=current_date, help="Enter date")
+parser.add_argument("--end_date", nargs='?', default=current_date, help="Enter date")
 
 args = parser.parse_args()
 
@@ -67,11 +68,13 @@ headers2={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image
 headers3={'Referer': 'https://www.appannie.com/account/login/',
 			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36'}
 
+headers4={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36'}
+
 """
 client is to visit login url and collect the csrftoken.
 """
 client = requests.session()
-login = client.get(login_url, headers=headers)
+login = client.get(login_url, headers=headers3)
 og_soup = BeautifulSoup(login.text, "html.parser")
 if "captcha" in (login.text).encode('ascii', 'ignore'):
 	print("Captcha required. Log-in failed.")
@@ -221,12 +224,12 @@ print((example.text).encode('ascii', 'ignore'))
 """
 Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
 """
-r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + args.date, headers=headers3)
+r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + args.date, headers=headers4)
 if (r.status_code == 403):
 	print(r.status_code)
 	sys.exit(0)
 else:
-	("GET requrest " + str(args.date) + " url proceeded correctly.")
+	print("GET request " + str(args.date) + " url proceeded correctly.")
 soup = BeautifulSoup(r.text, "html.parser")
 # print((soup.text).encode('ascii', 'ignore'))
 
@@ -283,7 +286,7 @@ for row in soup.find_all('tr', class_=["odd", "even"]):
 						print("App page found. Waiting 10 seconds before GET request to app page.")
 						time.sleep(10)
 
-						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers3)
+						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers4)
 						soup2 = BeautifulSoup(r2.text, "html.parser")
 
 						if (r2.status_code == 403):
