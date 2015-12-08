@@ -266,19 +266,23 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 			for row3 in row2.find_all('span', class_="oneline-info"):
 				for row4 in row3.find_all('a'):
 					# print(row4)
-					if(switch == 1):
-						# print(category[position])
-						app_metadata.update({"Type": category[position]})
-						# print(rank_counter[position])
-						app_ranking.update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
-						app_metadata.update({"Ranking": app_ranking})
-						switch = 0
-					else:
-						switch = 1
 
 					if(ap_position == 0):
 						app_name = (row4.text).encode('ascii', 'ignore')
 						app_metadata.update({"App Link": (row4.get('href')).encode('ascii', 'ignore')})
+
+						if(switch == 1):
+							# print(category[position])
+							app_metadata.update({"Type": category[position]})
+							# print(rank_counter[position])
+							app_ranking.update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
+							if(app_name in apps):
+								app_metadata.update({"Ranking": ((apps[app_name])["Ranking"]).update{app_ranking})
+							else:
+								app_metadata.update({"Ranking": app_ranking})
+							switch = 0
+						else:
+							switch = 1
 						# print(apps)
 						# apps.update({app_name: app_metadata})
 						ap_position += 1
@@ -293,7 +297,13 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 							print("App page found. Waiting 10 seconds before GET request to app page.")
 							time.sleep(10)
 
-							r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers4)
+							try:
+								r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers4)
+							except requests.exceptions.ConnectionError as e:
+								apps.update({app_name: app_metadata})
+								with open('iphone-data-' + args.date + '.json', 'w') as output:
+									json.dump(apps, output)
+									
 							soup2 = BeautifulSoup(r2.text, "html.parser")
 
 							if (r2.status_code == 403):
