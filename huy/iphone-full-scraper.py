@@ -225,6 +225,8 @@ example = client.get("https://www.appannie.com/apps/ios/app/1052231801/", header
 print((example.text).encode('ascii', 'ignore'))
 """
 
+apps = {}
+
 """
 Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
 """
@@ -232,7 +234,9 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 	print(check_date.strftime('%Y-%m-%d'))
 	r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + check_date.strftime('%Y-%m-%d'), headers=headers4, allow_redirects=False)
 	if (r.status_code == 403):
-		print(r.status_code)
+		print("Date page received a: " + str(r.status_code) + " on date, " + check_date.strftime('%Y-%m-%d'))
+		with open('iphone-data-' + args.date + '.json', 'w') as output:
+			json.dump(apps, output)
 		sys.exit(0)
 	else:
 		print("GET request " + check_date.strftime('%Y-%m-%d') + " url proceeded correctly.")
@@ -252,8 +256,6 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 
 	switch = 1
 	test = 1
-
-	apps = {}
 
 	"""
 	Parse the ranking list of iPhone page for top 100.
@@ -277,9 +279,12 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 							# print(rank_counter[position])
 							app_ranking.update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
 							if(app_name in apps):
-								app_metadata.update({"Ranking": ((apps[app_name])["Ranking"]).update(app_ranking)})
-							else:
-								app_metadata.update({"Ranking": app_ranking})
+								print(app_name + " matched.")
+								app_name_contents = apps[app_name]
+								if("Ranking" in app_name_contents):
+									app_metadata.update({"Ranking": (app_name_contents["Ranking"]).update(app_ranking)})
+								else:
+									app_metadata.update({"Ranking": app_ranking})
 							switch = 0
 						else:
 							switch = 1
@@ -310,12 +315,18 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 							if (r2.status_code == 403):
 								print("App page received a: " + str(r2.status_code) + " on date, " + check_date.strftime('%Y-%m-%d'))
 								print((row4.get('href')).encode('ascii', 'ignore'))
+								apps.update({app_name: app_metadata})
+								with open('iphone-data-' + args.date + '.json', 'w') as output:
+									json.dump(apps, output)
 								sys.exit(0)
 							
 							# print(r2.text).encode('ascii', 'ignore')
 							if(((r2.text).encode('ascii', 'ignore')).startswith('<!DOCTYPE html>\n<html lang="en" xmlns:og="http://ogp.me/ns#">')):
 								print("Incorrect app page without the right information. Something must have gone wrong.")
-								break
+								apps.update({app_name: app_metadata})
+								with open('iphone-data-' + args.date + '.json', 'w') as output:
+									json.dump(apps, output)
+								sys.exit(0)
 							else:
 								print("App page: " + (row4.get('href')).encode('ascii', 'ignore') + " hit correctly.")
 
