@@ -277,7 +277,7 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 							# print(rank_counter[position])
 							app_ranking.update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
 							if(app_name in apps):
-								app_metadata.update({"Ranking": ((apps[app_name])["Ranking"]).update(app_ranking)
+								app_metadata.update({"Ranking": ((apps[app_name])["Ranking"]).update(app_ranking)})
 							else:
 								app_metadata.update({"Ranking": app_ranking})
 							switch = 0
