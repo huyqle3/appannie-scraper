@@ -9,6 +9,7 @@ from requests import session
 import cookielib
 
 from datetime import datetime
+from datetime import timedelta
 import urllib2
 import json
 import sys
@@ -19,10 +20,11 @@ import time
 Arguments
 """
 current_date = datetime.now().strftime('%Y-%m-%d')
+default_end_date = datetime.now() - timedelta(days=1)
 
 parser = argparse.ArgumentParser(description='Scrape AppAnnie rankings at a certain date.')
 parser.add_argument("--date", nargs='?', default=current_date, help="Enter date")
-parser.add_argument("--end_date", nargs='?', default=current_date, help="Enter date")
+parser.add_argument("--end_date", nargs='?', default=default_end_date.strftime('%Y-%m-%d'), help="Enter date")
 
 args = parser.parse_args()
 
@@ -33,7 +35,9 @@ def validate(date_text):
         raise ValueError("Incorrect data format. Should be YYYY-MM-DD")
 
 validate(args.date)
-print(args.date)
+validate(args.end_date)
+
+check_date = datetime.strptime(args.date, '%Y-%m-%d')
 
 """
 login_url is required to be able to access AppAnnie app store information
@@ -224,133 +228,137 @@ print((example.text).encode('ascii', 'ignore'))
 """
 Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
 """
-r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + args.date, headers=headers4)
-if (r.status_code == 403):
-	print(r.status_code)
-	sys.exit(0)
-else:
-	print("GET request " + str(args.date) + " url proceeded correctly.")
-soup = BeautifulSoup(r.text, "html.parser")
-# print((soup.text).encode('ascii', 'ignore'))
+while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
+	print(check_date.strftime('%Y-%m-%d'))
+	r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + check_date.strftime('%Y-%m-%d'), headers=headers4, allow_redirects=False)
+	if (r.status_code == 403):
+		print(r.status_code)
+		sys.exit(0)
+	else:
+		print("GET request " + check_date.strftime('%Y-%m-%d') + " url proceeded correctly.")
 
-"""
-Load the order of Free, Paid, Grossing, and order of ranks.
-"""
-category = ["Free", "Paid", "Grossing"]
-app_or_publisher = ["App", "Publisher", "Test"]
-ap_position = 0
+	soup = BeautifulSoup(r.text, "html.parser")
+	# print((soup.text).encode('ascii', 'ignore'))
 
-rank_counter = [1, 1, 1]
-position = 0
+	"""
+	Load the order of Free, Paid, Grossing, and order of ranks.
+	"""
+	category = ["Free", "Paid", "Grossing"]
+	app_or_publisher = ["App", "Publisher", "Test"]
+	ap_position = 0
 
-switch = 1
-test = 1
+	rank_counter = [1, 1, 1]
+	position = 0
 
-apps = {}
+	switch = 1
+	test = 1
 
-"""
-Parse the ranking list of iPhone page for top 100.
-"""
-for row in soup.find_all('tr', class_=["odd", "even"]):
-	for row2 in row.find_all('div', class_="main-info"):
-		app_ranking = {}
-		app_metadata = {}
-		# print(row2)
-		for row3 in row2.find_all('span', class_="oneline-info"):
-			for row4 in row3.find_all('a'):
-				# print(row4)
-				if(switch == 1):
-					# print(category[position])
-					app_metadata.update({"Type": category[position]})
-					# print(rank_counter[position])
-					app_ranking.update({args.date: rank_counter[position]})
-					app_metadata.update({"Ranking": app_ranking})
-					switch = 0
-				else:
-					switch = 1
+	apps = {}
 
-				if(ap_position == 0):
-					app_name = (row4.text).encode('ascii', 'ignore')
-					app_metadata.update({"App Link": (row4.get('href')).encode('ascii', 'ignore')})
-					# print(apps)
-					# apps.update({app_name: app_metadata})
-					ap_position += 1
-				else:
-					app_metadata.update({"Publisher": (row4.text).encode('ascii', 'ignore')})
-					app_metadata.update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
-					ap_position = 0
+	"""
+	Parse the ranking list of iPhone page for top 100.
+	"""
+	for row in soup.find_all('tr', class_=["odd", "even"]):
+		for row2 in row.find_all('div', class_="main-info"):
+			app_ranking = {}
+			app_metadata = {}
+			# print(row2)
+			for row3 in row2.find_all('span', class_="oneline-info"):
+				for row4 in row3.find_all('a'):
+					# print(row4)
+					if(switch == 1):
+						# print(category[position])
+						app_metadata.update({"Type": category[position]})
+						# print(rank_counter[position])
+						app_ranking.update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
+						app_metadata.update({"Ranking": app_ranking})
+						switch = 0
+					else:
+						switch = 1
 
-				if(app_name not in apps):
-					deep_metadata_count = 0
-					if(row4.get('href').startswith("/apps/ios/app/")):
-						print("App page found. Waiting 10 seconds before GET request to app page.")
-						time.sleep(10)
-
-						r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers4)
-						soup2 = BeautifulSoup(r2.text, "html.parser")
-
-						if (r2.status_code == 403):
-							print("App page received a: " + str(r2.status_code) + " on date, " + str(args.date))
-							print((row4.get('href')).encode('ascii', 'ignore'))
-							sys.exit(0)
-						
-						# print(r2.text).encode('ascii', 'ignore')
-						if(((r2.text).encode('ascii', 'ignore')).startswith('<!DOCTYPE html>\n<html lang="en" xmlns:og="http://ogp.me/ns#">')):
-							print("Incorrect app page without the right information. Something must have gone wrong.")
-							break
-						else:
-							print("App page: " + (row4.get('href')).encode('ascii', 'ignore') + " hit correctly.")
-
-						for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
-							# print((row5.text).encode('ascii', 'ignore'))
-							metadata = (row5.text).encode('ascii', 'ignore')
-							parsed_metadata = (metadata.replace('\r', '')).split()
-							if not parsed_metadata:
-								continue
-							if deep_metadata_count == 1:
-								if len(parsed_metadata) >= 8:
-									app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
-							if deep_metadata_count == 3:
-								if len(parsed_metadata) >= 8:
-									app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
-							if deep_metadata_count == 4:
-								current_version = parsed_metadata[3]
-								app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
-							if deep_metadata_count == 5:
-								app_metadata.update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
-									"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}}})
-							if deep_metadata_count == 6:
-								app_metadata.update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
-							if deep_metadata_count == 7:
-								app_metadata.update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
-									"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}})	
-							deep_metadata_count += 1
-
-						for row5 in soup2.find_all('div', class_="app-box-content"):
-							for row6 in row5.find_all('p'):
-								if((row6.text).startswith("Category")):
-									divided = ((row6.text).encode('ascii', 'ignore')).split(': ')
-									# print((row6.text).encode('ascii', 'ignore'))
-									app_metadata.update({"Category": divided[1]})
-									# print(divided)
-								if((row6.text).startswith("Updated")):
-									divided = (row6.text).split(': ')
-									# print((row6.text).encode('ascii', 'ignore'))
-									app_metadata.update({"Last Updated": divided[1]})
-									# print(divided)
-
+					if(ap_position == 0):
+						app_name = (row4.text).encode('ascii', 'ignore')
+						app_metadata.update({"App Link": (row4.get('href')).encode('ascii', 'ignore')})
+						# print(apps)
 						# apps.update({app_name: app_metadata})
-						# test = 0
+						ap_position += 1
+					else:
+						app_metadata.update({"Publisher": (row4.text).encode('ascii', 'ignore')})
+						app_metadata.update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
+						ap_position = 0
 
-				if(switch == 1):
-					rank_counter[position] += 1
-					position += 1
-					if (position == 3):
-						position = 0
-		apps.update({app_name: app_metadata})
-		# print(app_metadata)
+					if(app_name not in apps):
+						deep_metadata_count = 0
+						if(row4.get('href').startswith("/apps/ios/app/")):
+							print("App page found. Waiting 10 seconds before GET request to app page.")
+							time.sleep(10)
 
-# print(apps)
+							r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers4)
+							soup2 = BeautifulSoup(r2.text, "html.parser")
+
+							if (r2.status_code == 403):
+								print("App page received a: " + str(r2.status_code) + " on date, " + check_date.strftime('%Y-%m-%d'))
+								print((row4.get('href')).encode('ascii', 'ignore'))
+								sys.exit(0)
+							
+							# print(r2.text).encode('ascii', 'ignore')
+							if(((r2.text).encode('ascii', 'ignore')).startswith('<!DOCTYPE html>\n<html lang="en" xmlns:og="http://ogp.me/ns#">')):
+								print("Incorrect app page without the right information. Something must have gone wrong.")
+								break
+							else:
+								print("App page: " + (row4.get('href')).encode('ascii', 'ignore') + " hit correctly.")
+
+							for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
+								# print((row5.text).encode('ascii', 'ignore'))
+								metadata = (row5.text).encode('ascii', 'ignore')
+								parsed_metadata = (metadata.replace('\r', '')).split()
+								if not parsed_metadata:
+									continue
+								if deep_metadata_count == 1:
+									if len(parsed_metadata) >= 8:
+										app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+								if deep_metadata_count == 3:
+									if len(parsed_metadata) >= 8:
+										app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+								if deep_metadata_count == 4:
+									current_version = parsed_metadata[3]
+									app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
+								if deep_metadata_count == 5:
+									app_metadata.update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+										"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}}})
+								if deep_metadata_count == 6:
+									app_metadata.update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
+								if deep_metadata_count == 7:
+									app_metadata.update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+										"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}})	
+								deep_metadata_count += 1
+
+							for row5 in soup2.find_all('div', class_="app-box-content"):
+								for row6 in row5.find_all('p'):
+									if((row6.text).startswith("Category")):
+										divided = ((row6.text).encode('ascii', 'ignore')).split(': ')
+										# print((row6.text).encode('ascii', 'ignore'))
+										app_metadata.update({"Category": divided[1]})
+										# print(divided)
+									if((row6.text).startswith("Updated")):
+										divided = (row6.text).split(': ')
+										# print((row6.text).encode('ascii', 'ignore'))
+										app_metadata.update({"Last Updated": divided[1]})
+										# print(divided)
+
+							# apps.update({app_name: app_metadata})
+							# test = 0
+
+					if(switch == 1):
+						rank_counter[position] += 1
+						position += 1
+						if (position == 3):
+							position = 0
+			apps.update({app_name: app_metadata})
+			# print(app_metadata)
+
+	# print(apps)
+	check_date -= timedelta(days=1)
 
 with open('iphone-data-' + args.date + '.json', 'w') as output:
 	json.dump(apps, output)
