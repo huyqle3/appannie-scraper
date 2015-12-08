@@ -277,7 +277,7 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 							# print(rank_counter[position])
 							app_ranking.update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
 							if(app_name in apps):
-								app_metadata.update({"Ranking": ((apps[app_name])["Ranking"]).update{app_ranking})
+								app_metadata.update({"Ranking": ((apps[app_name])["Ranking"]).update(app_ranking)
 							else:
 								app_metadata.update({"Ranking": app_ranking})
 							switch = 0
@@ -303,7 +303,8 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 								apps.update({app_name: app_metadata})
 								with open('iphone-data-' + args.date + '.json', 'w') as output:
 									json.dump(apps, output)
-									
+								print("Connection errored out. Saved contents to JSON file.")
+
 							soup2 = BeautifulSoup(r2.text, "html.parser")
 
 							if (r2.status_code == 403):
