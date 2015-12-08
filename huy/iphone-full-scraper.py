@@ -8,8 +8,7 @@ import requests
 from requests import session
 import cookielib
 
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 import urllib2
 import json
 import sys
