@@ -300,7 +300,7 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 						deep_metadata_count = 0
 						if(row4.get('href').startswith("/apps/ios/app/")):
 							random_float = random.uniform(8, 11)
-							print("App page found. Waiting " + random_float + " seconds before GET request to app page.")
+							print("App page found. Waiting " + str(random_float) + " seconds before GET request to app page.")
 							time.sleep(random_float)
 
 							try:
