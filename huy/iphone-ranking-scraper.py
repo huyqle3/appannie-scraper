@@ -25,7 +25,7 @@ default_end_date = datetime.now() - timedelta(days=1)
 parser = argparse.ArgumentParser(description='Scrape AppAnnie rankings at a certain date.')
 parser.add_argument("--date", nargs='?', default=current_date, help="Enter date")
 parser.add_argument("--end_date", nargs='?', default=default_end_date.strftime('%Y-%m-%d'), help="Enter date")
-parser.add_argument("--input_file", nargs='?', default="iphone-one-day-12-08.json", help="Enter file")
+parser.add_argument("--input_file", nargs='?', default="iphone-data-2015-12-05.json", help="Enter file")
 
 args = parser.parse_args()
 
@@ -118,7 +118,7 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 	print(check_date.strftime('%Y-%m-%d'))
 	print("Waiting " + str(random_float) + " seconds before GET request to app page.")
 	time.sleep(random_float)
-	
+
 	r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + check_date.strftime('%Y-%m-%d'), headers=headers4, allow_redirects=False)
 	if (r.status_code == 403):
 		print("Date page received a: " + str(r.status_code) + " on date, " + check_date.strftime('%Y-%m-%d'))
@@ -170,8 +170,8 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 								app_name_contents = apps[app_name]
 								if("Ranking" in app_name_contents):
 									app_name_contents["Ranking"].update(app_ranking)
-								else:
-									app_metadata.update({"Ranking": app_ranking})
+							else:
+								app_metadata.update({"Ranking": app_ranking})
 							switch = 0
 						else:
 							switch = 1
@@ -194,5 +194,5 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 	# print(apps)
 	check_date -= timedelta(days=1)
 
-with open('iphone-ranking-from' + args.date + '-to-' + args.end_date + '.json', 'w') as output:
+with open('iphone-ranking-from-' + args.date + '-to-' + args.end_date + '.json', 'w') as output:
 	json.dump(apps, output)
