@@ -299,8 +299,9 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 					if(app_name not in apps):
 						deep_metadata_count = 0
 						if(row4.get('href').startswith("/apps/ios/app/")):
-							print("App page found. Waiting 10 seconds before GET request to app page.")
-							time.sleep(random.uniform(8, 11))
+							random_float = random.uniform(8, 11)
+							print("App page found. Waiting " + random_float + " seconds before GET request to app page.")
+							time.sleep(random_float)
 
 							try:
 								r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers4)
