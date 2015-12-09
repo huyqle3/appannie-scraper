@@ -9,6 +9,7 @@ from requests import session
 import cookielib
 
 from datetime import datetime, timedelta
+import random
 import urllib2
 import json
 import sys
@@ -299,7 +300,7 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 						deep_metadata_count = 0
 						if(row4.get('href').startswith("/apps/ios/app/")):
 							print("App page found. Waiting 10 seconds before GET request to app page.")
-							time.sleep(10)
+							time.sleep(random.uniform(8, 11))
 
 							try:
 								r2 = client.get("https://www.appannie.com" + row4.get('href'), headers=headers4)
