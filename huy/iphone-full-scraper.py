@@ -282,7 +282,7 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 								print(app_name + " matched.")
 								app_name_contents = apps[app_name]
 								if("Ranking" in app_name_contents):
-									app_metadata.update({"Ranking": (app_name_contents["Ranking"]).update(app_ranking)})
+									app_name_contents["Ranking"].update(app_ranking)
 								else:
 									app_metadata.update({"Ranking": app_ranking})
 							switch = 0
