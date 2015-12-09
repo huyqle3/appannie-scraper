@@ -114,7 +114,11 @@ apps = json_data
 Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
 """
 while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
+	random_float = random.uniform(8, 11)
 	print(check_date.strftime('%Y-%m-%d'))
+	print("Waiting " + str(random_float) + " seconds before GET request to app page.")
+	time.sleep(random_float)
+	
 	r = client.get("https://www.appannie.com/apps/ios/top/?_ref=header&device=iphone&date=" + check_date.strftime('%Y-%m-%d'), headers=headers4, allow_redirects=False)
 	if (r.status_code == 403):
 		print("Date page received a: " + str(r.status_code) + " on date, " + check_date.strftime('%Y-%m-%d'))
