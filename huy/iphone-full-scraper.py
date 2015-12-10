@@ -139,12 +139,18 @@ def parse_detailed_metadata(row4, app_name):
 		
 		# print(r2.text).encode('ascii', 'ignore')
 		if(((r2.text).encode('ascii', 'ignore')).startswith('<!DOCTYPE html>\n<html lang="en" xmlns:og="http://ogp.me/ns#">')):
-			print("Incorrect app page without the right information. Something must have gone wrong.")
+			print("Incorrect app page without the right information on date, " + check_date.strftime('%Y-%m-%d') + ". Something must have gone wrong.")
 			with open('iphone-data-' + args.date + '.json', 'w') as output:
 				json.dump(apps, output)
 			sys.exit(0)
 		else:
 			print("App page: " + (row4.get('href')).encode('ascii', 'ignore') + " hit correctly.")
+
+		if(not soup2.find_all('div', class_=["app_slide_content", "app_slide_header"])):
+			print("Captcha requested on date page. Date failed on " + check_date.strftime('%Y-%m-%d') + ". Writing to JSON and stopping.")
+			with open('iphone-data-' + args.date + '.json', 'w') as output:
+				json.dump(apps, output)
+			sys.exit(0)
 
 		for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
 			# print((row5.text).encode('ascii', 'ignore'))
@@ -213,6 +219,12 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 	rank_counter = [1, 1]
 	position = 0
 
+	if(not soup.find_all('tr', class_=["odd", "even"])):
+		print("Captcha requested on date page. Date failed on " + check_date.strftime('%Y-%m-%d') + ". Writing to JSON and stopping.")
+		with open('iphone-data-' + args.date + '.json', 'w') as output:
+			json.dump(apps, output)
+		sys.exit(0)
+
 	"""
 	Parse the ranking list of iPhone page for top 100.
 	"""
@@ -253,7 +265,6 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 				if(ap_position == 0):
 					rank_counter[position] += 1
 					position += 1
-			print(apps)
 
 	check_date -= timedelta(days=1)
 

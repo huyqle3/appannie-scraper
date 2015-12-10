@@ -141,45 +141,52 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 	rank_counter = [1, 1]
 	position = 0
 
+	if(not soup.find_all('tr', class_=["odd", "even"])):
+		print("Captcha requested on date page. Date failed on " + check_date.strftime('%Y-%m-%d') + ". Writing to JSON and stopping.")
+		with open('iphone-ranking-from-' + args.date + '-to-' + check_date.strftime('%Y-%m-%d') + '.json', 'w') as output:
+			json.dump(apps, output)
+		sys.exit(0)
+
 	"""
 	Parse the ranking list of iPhone page for top 100.
 	"""
 	for row in soup.find_all('tr', class_=["odd", "even"]):
 		for row2 in row.find_all('div', class_="main-info"):
 			# print(row2)
+			if(position == 2):
+				print("About to break.")
+				position = 0
+				break
+
 			for row3 in row2.find_all('span', class_="oneline-info"):
-				if(position == 2):
-					position = 0
-					break
+				row4 = row3.find_all('a')[0]
+				# print(row4)
 
-				for row4 in row3.find_all('a'):
-					# print(row4)
-					if(ap_position == 0):
-						app_name = (row4.text).encode('ascii', 'ignore')
-						if(app_name in apps):
-							print(app_name + " matched.")
-							(apps[app_name])["Ranking"].update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
-							rank_counter[position] += 1
-							position += 1
-							break
-
-						else:
-							apps[app_name] = {}
-							apps[app_name].update({"App Link": (row4.get('href')).encode('ascii', 'ignore')})
-							apps[app_name].update({"Type": category[position]})
-							apps[app_name].update({"Ranking": {check_date.strftime('%Y-%m-%d'): rank_counter[position]}})
-						ap_position += 1
-
-					else:
-						apps[app_name].update({"Publisher": (row4.text).encode('ascii', 'ignore')})
-						apps[app_name].update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
-						ap_position = 0
-
-					if(ap_position == 0):
+				if(ap_position == 0):
+					app_name = (row4.text).encode('ascii', 'ignore')
+					if(app_name in apps):
+						print(app_name + " matched.")
+						(apps[app_name])["Ranking"].update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
 						rank_counter[position] += 1
 						position += 1
-						
-			print(apps)
+						break
+
+					else:
+						apps[app_name] = {}
+						apps[app_name].update({"App Link": (row4.get('href')).encode('ascii', 'ignore')})
+						apps[app_name].update({"Type": category[position]})
+						apps[app_name].update({"Ranking": {check_date.strftime('%Y-%m-%d'): rank_counter[position]}})
+					ap_position += 1
+
+				else:
+					apps[app_name].update({"Publisher": (row4.text).encode('ascii', 'ignore')})
+					apps[app_name].update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
+					ap_position = 0
+
+				if(ap_position == 0):
+					rank_counter[position] += 1
+					position += 1
+
 	check_date -= timedelta(days=1)
 
 with open('iphone-ranking-from-' + args.date + '-to-' + args.end_date + '.json', 'w') as output:
