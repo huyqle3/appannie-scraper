@@ -162,7 +162,7 @@ def main(infile):
 	data = calcPrevAvg(data)
 	data = calcDTDChange(data)
 	print(len(data))
-	good_updates, bad_updates = findGoodBadUpdates(data, 0.3, 0.3)
+	good_updates, bad_updates = findGoodBadUpdates(data, 0.5, 0.5)
 	print(len(good_updates), len(bad_updates))
 	good_data = {app: data[app] for app in good_updates}
 	bad_data = {app: data[app] for app in bad_updates}
@@ -184,4 +184,4 @@ def main(infile):
 
 	return 0
 
-main("iphone-data-2015-08-01.json")
+main("data.json")
