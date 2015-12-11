@@ -168,10 +168,10 @@ def beforeAndAfter(data, days):
 	keys = sorted(list(ranking_change_total.keys()))
 	values = [ranking_change_total[key] for key in keys]
 	plt.plot(keys, values, linewidth=5)
-	fig.suptitle('Bad Updates', fontweight="bold")
+	fig.suptitle('Good Updates', fontweight="bold")
 	plt.xlabel('Days since most recent update')
 	plt.ylabel('Rating change since most recent update')
-	fig.savefig('bad_updates.png')
+	fig.savefig('good_updates.jpeg')
 	plt.show()
 	
 
@@ -195,7 +195,8 @@ def main(infile):
 	print(len(good_updates), len(bad_updates))
 	good_data = {app: data[app] for app in good_updates}
 	bad_data = {app: data[app] for app in bad_updates}
-	good = beforeAndAfter(bad_data, 24)
+	good = beforeAndAfter(good_data, 20)
+	print
 
 
 
