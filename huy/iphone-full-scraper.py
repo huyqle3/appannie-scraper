@@ -114,7 +114,6 @@ example = client.get("https://www.appannie.com/apps/ios/app/1052231801/", header
 print((example.text).encode('ascii', 'ignore'))
 """
 def parse_detailed_metadata(row4, app_name):
-	app_metadata = {}
 	deep_metadata_count = 0
 	if(row4.get('href').startswith("/apps/ios/app/")):
 		random_float = random.uniform(8, 11)
@@ -147,10 +146,10 @@ def parse_detailed_metadata(row4, app_name):
 			print("App page: " + (row4.get('href')).encode('ascii', 'ignore') + " hit correctly.")
 
 		if(not soup2.find_all('div', class_=["app_slide_content", "app_slide_header"])):
-			print("Captcha requested on date page. Date failed on " + check_date.strftime('%Y-%m-%d') + ". Writing to JSON and stopping.")
+			print("No featured info or ratings exist " + check_date.strftime('%Y-%m-%d') + ". Writing to JSON and continuing.")
 			with open('iphone-data-' + args.date + '.json', 'w') as output:
 				json.dump(apps, output)
-			sys.exit(0)
+			return
 
 		for row5 in soup2.find_all('div', class_=["app_slide_content", "app_slide_header"]):
 			# print((row5.text).encode('ascii', 'ignore'))
@@ -160,20 +159,20 @@ def parse_detailed_metadata(row4, app_name):
 				continue
 			if deep_metadata_count == 1:
 				if len(parsed_metadata) >= 8:
-					app_metadata.update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+					apps[app_name].update({"Featured in iPhone Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
 			if deep_metadata_count == 3:
 				if len(parsed_metadata) >= 8:
-					app_metadata.update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
+					apps[app_name].update({"Featured in iPad Market": {"iTunes Home Page": parsed_metadata[0], "iTunes": parsed_metadata[7]}})
 			if deep_metadata_count == 4:
 				current_version = parsed_metadata[3]
-				app_metadata.update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
+				apps[app_name].update({"Current Version": {current_version: {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}}})
 			if deep_metadata_count == 5:
-				app_metadata.update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+				apps[app_name].update({"Current Version": {current_version: {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
 					"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}}})
 			if deep_metadata_count == 6:
-				app_metadata.update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
+				apps[app_name].update({"Overall Ratings": {"average": parsed_metadata[3], "total_ratings": parsed_metadata[5]}})
 			if deep_metadata_count == 7:
-				app_metadata.update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
+				apps[app_name].update({"Overall Ratings": {"five_star": parsed_metadata[0], "four_star": parsed_metadata[1],
 					"three_star": parsed_metadata[2], "two_star": parsed_metadata[3], "one_star": parsed_metadata[4]}})	
 			deep_metadata_count += 1
 
@@ -182,15 +181,13 @@ def parse_detailed_metadata(row4, app_name):
 				if((row6.text).startswith("Category")):
 					divided = ((row6.text).encode('ascii', 'ignore')).split(': ')
 					# print((row6.text).encode('ascii', 'ignore'))
-					app_metadata.update({"Category": divided[1]})
+					apps[app_name].update({"Category": divided[1]})
 					# print(divided)
 				if((row6.text).startswith("Updated")):
 					divided = (row6.text).split(': ')
 					# print((row6.text).encode('ascii', 'ignore'))
-					app_metadata.update({"Last Updated": divided[1]})
+					apps[app_name].update({"Last Updated": divided[1]})
 					# print(divided)
-
-		apps.update({app_name: app_metadata})
 
 """
 Check iPhone top 100 page for free, paid, and grossing. Exit if 404.
@@ -244,7 +241,9 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 					app_name = (row4.text).encode('ascii', 'ignore')
 					if(app_name in apps):
 						print(app_name + " matched.")
-						(apps[app_name])["Ranking"].update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
+						if("Current Version" not in apps[app_name]):
+							parse_detailed_metadata(row4, app_name)
+						# (apps[app_name])["Ranking"].update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
 						rank_counter[position] += 1
 						position += 1
 						break
@@ -258,8 +257,9 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 					ap_position += 1
 
 				else:
-					apps[app_name].update({"Publisher": (row4.text).encode('ascii', 'ignore')})
-					apps[app_name].update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
+					if(app_name not in apps):
+						apps[app_name].update({"Publisher": (row4.text).encode('ascii', 'ignore')})
+						apps[app_name].update({"Publisher Link": (row4.get('href')).encode('ascii', 'ignore')})
 					ap_position = 0
 
 				if(ap_position == 0):
