@@ -1,8 +1,11 @@
 #!/usr/local/bin/python3
+import matplotlib.pyplot as plt
 import json
 from datetime import datetime, timedelta
 
-
+# Takes in a dictionary of apps, adds the attribute Previous
+# Ratings by subtracting Current Version from Overall Ratings
+# Returns the modified data
 def calcPrevAvg(data):
 	delete = []
 	for app in data:
@@ -64,6 +67,9 @@ def calcPrevAvg(data):
 		del data[app]
 	return data
 
+# Takes a dictionary of apps, returns two lists: a list of
+# apps that had a star rating increase > good_thresh, and a
+# list of apps that had a star rating change < bad_thresh
 def findGoodBadUpdates(data, good_thresh, bad_thresh):
 	good_updates = []
 	bad_updates = []
@@ -75,18 +81,9 @@ def findGoodBadUpdates(data, good_thresh, bad_thresh):
 				bad_updates.append(app)
 	return good_updates, bad_updates
 
-def separateBeforeAfterUpdate(data):
-	delete = []
-	for app in data:
-		if "Last Updated" in data[app]:
-			last_updated = data[app]["Last Updated"]
-
-		else:
-			delete.append(app)
-	for app in delete:
-		del data[app]
-	return data
-
+# Calculates the ranking change from the day before, adds
+# a new attribute dictionary called Ranking Chance, returns
+# data dict
 def calcDTDChange(data):
 	delete = []
 	for app in data:
@@ -102,6 +99,7 @@ def calcDTDChange(data):
 		del data[app]
 	return data
 
+# Dont worry about this one
 def avgRankingChangeOverTime(data, days):
 	delete = []
 	total = 0
@@ -110,7 +108,7 @@ def avgRankingChangeOverTime(data, days):
 		if "Ranking" in data[app]:
 			for date in data[app]["Ranking"].keys():
 				if date - timedelta(days=days) in data[app]["Ranking"]:
-					total += abs(data[app]["Ranking"][date] - data[app]["Ranking"][date-timedelta(days=days)])
+					total += data[app]["Ranking"][date] - data[app]["Ranking"][date-timedelta(days=days)]
 					count += 1
 		else:
 			delete.append(app)
@@ -120,6 +118,8 @@ def avgRankingChangeOverTime(data, days):
 		del data[app]
 	return data, mean
 
+# Just reformats the dates in our data to datetime objects,
+# returns the data dict
 def strToDateTime(data):
 	delete = []
 	for app in data:
@@ -128,19 +128,52 @@ def strToDateTime(data):
 		if "Last Updated" in data[app]:
 			data[app]["Last Updated"] = datetime.strptime(data[app]["Last Updated"], "%b %d, %Y")
 
-	# for app in delete:
-	# 	del data[app]
 	return data
 
+# This is the actual model. It returns a dictionary where the 
+# keys are days relative to the update date, and the values are
+# the average change on those days for every app in the dict.
+# The days arguments specifies the number of days before and after
+# the update date we are interested in
+def beforeAndAfter(data, days):
+	ret = {i: 0 for i in range(-1*days, days+1)}
+	counts = {i: 0 for i in range(-1*days, days+1)}
+	for app in data:
+		if "Last Updated" in data[app]:
+			last_updated = data[app]["Last Updated"]
+			for i in range(-1*days, days+1):
+				if last_updated + timedelta(days=i) in data[app]["Ranking Change"]:
+					ret[i] += data[app]["Ranking Change"][last_updated + timedelta(days=i)]
+					counts[i] += 1
+	ret = {day: ct for day, ct in ret.items() if counts[day] > 3}
+	ret = {day: ct/counts[day] for day, ct in ret.items()}
+
+	return ret
 
 def main(infile):
+
 	data = json.loads(open(infile).read())
 	data = strToDateTime(data)
-	data, mean = avgRankingChangeOverTime(data, 2)
-	print(mean)
-	good_updates, bad_updates = findGoodBadUpdates(data, .5, .5)
-	data = calcDTDChange(data)
+	# data, mean = avgRankingChangeOverTime(data, 10)
+
 	data = calcPrevAvg(data)
+	data = calcDTDChange(data)
+	print(len(data))
+	good_updates, bad_updates = findGoodBadUpdates(data, 0.5, 0.5)
+	print(len(good_updates), len(bad_updates))
+	good_data = {app: data[app] for app in good_updates}
+	bad_data = {app: data[app] for app in bad_updates}
+	day_split = beforeAndAfter(good_data, 20)
+	keys = sorted(list(day_split.keys()))
+	values = [day_split[key] for key in keys]
+	plt.plot(keys, values)
+	print(keys, values)
+	plt.show()
+	# print(day_split)
+
+	
+	# data = calcDTDChange(data)
+	# data = calcPrevAvg(data)
 
 
 
@@ -148,4 +181,4 @@ def main(infile):
 
 	return 0
 
-main("iphone-data-2015-10-11.json")
+main("iphone-data-2015-08-01.json")
