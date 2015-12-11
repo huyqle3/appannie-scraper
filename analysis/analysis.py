@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import json
 from datetime import datetime, timedelta
+import statistics
 
 # Takes in a dictionary of apps, adds the attribute Previous
 # Ratings by subtracting Current Version from Overall Ratings
@@ -70,14 +71,14 @@ def calcPrevAvg(data):
 # Takes a dictionary of apps, returns two lists: a list of
 # apps that had a star rating increase > good_thresh, and a
 # list of apps that had a star rating change < bad_thresh
-def findGoodBadUpdates(data, good_thresh, bad_thresh):
+def findGoodBadUpdates(data, threshold):
 	good_updates = []
 	bad_updates = []
 	for app in data:
 		if "Previous Versions" in data[app] and data[app]["Previous Average"] != 0:
-			if data[app]["Current Average"] - data[app]["Previous Average"] > good_thresh:
+			if data[app]["Current Average"] - data[app]["Previous Average"] > threshold:
 				good_updates.append(app)
-			elif data[app]["Current Average"] - data[app]["Previous Average"] < (bad_thresh * -1):
+			elif data[app]["Current Average"] - data[app]["Previous Average"] < (threshold * -1):
 				bad_updates.append(app)
 	return good_updates, bad_updates
 
@@ -99,24 +100,14 @@ def calcDTDChange(data):
 		del data[app]
 	return data
 
-# Dont worry about this one
-def avgRankingChangeOverTime(data, days):
-	delete = []
-	total = 0
-	count = 0
+def ratingChangeStats(data):
+	rating_change = []
 	for app in data:
-		if "Ranking" in data[app]:
-			for date in data[app]["Ranking"].keys():
-				if date - timedelta(days=days) in data[app]["Ranking"]:
-					total += data[app]["Ranking"][date] - data[app]["Ranking"][date-timedelta(days=days)]
-					count += 1
-		else:
-			delete.append(app)
-	mean = total / count
-
-	for app in delete:
-		del data[app]
-	return data, mean
+		if "Previous Average" in data[app] and data[app]["Previous Average"] != 0:
+			rating_change.append(abs(data[app]["Current Average"] - data[app]["Previous Average"]))
+	mean = sum(rating_change) / len(rating_change)
+	std_dev = statistics.stdev(rating_change)
+	return mean, std_dev
 
 # Just reformats the dates in our data to datetime objects,
 # returns the data dict
@@ -136,20 +127,55 @@ def strToDateTime(data):
 # The days arguments specifies the number of days before and after
 # the update date we are interested in
 def beforeAndAfter(data, days):
+	fig = plt.figure()
 	ret = {i: 0 for i in range(-1*days, days+1)}
 	counts = {i: 0 for i in range(-1*days, days+1)}
+	ranking_change = {}
+	ranking_change_total = {i: 0 for i in range(0, days+1)}
+	ranking_change_ct = {i: 0 for i in range(0, days+1)}
 	for app in data:
 		if "Last Updated" in data[app]:
 			last_updated = data[app]["Last Updated"]
-			for i in range(-1*days, days+1):
-				if last_updated + timedelta(days=i) in data[app]["Ranking Change"]:
-					ret[i] += data[app]["Ranking Change"][last_updated + timedelta(days=i)]
-					counts[i] += 1
-	print(counts)
-	print(ret)
-	ret = {day: ct for day, ct in ret.items() if counts[day] > 3}
-	ret = {day: ct/counts[day] for day, ct in ret.items()}
-	print(ret)
+			prev_total = 0
+			prev_count = 0
+			for i in range(-1*days, 0):
+				if last_updated + timedelta(days=i) in data[app]["Ranking"]:
+					prev_total += data[app]["Ranking"][last_updated + timedelta(days=i)]
+					prev_count += 1
+
+			if prev_count > 0:
+				prev_avg = prev_total / prev_count
+			else:
+				continue
+			
+			
+			for j in range(1, days+1):
+				ranking_change[0] = 0
+				
+				if last_updated + timedelta(days=j) in data[app]["Ranking"]:
+					ranking_change[j] = data[app]["Ranking"][last_updated + timedelta(days=j)] - prev_avg
+					ranking_change_total[j] += ranking_change[j]
+					ranking_change_ct[j] += 1
+
+
+			if len(ranking_change) > 5:
+				keys = sorted(list(ranking_change.keys()))
+				values = [ranking_change[key] for key in keys]
+				plt.plot(keys, values)
+
+	ranking_change_total = {x:y/ranking_change_ct[x] for x, y in ranking_change_total.items() if ranking_change_ct[x] > 0}
+	ranking_change_total[0] = 0
+	keys = sorted(list(ranking_change_total.keys()))
+	values = [ranking_change_total[key] for key in keys]
+	plt.plot(keys, values, linewidth=5)
+	fig.suptitle('Bad Updates', fontweight="bold")
+	plt.xlabel('Days since most recent update')
+	plt.ylabel('Rating change since most recent update')
+	fig.savefig('bad_updates.png')
+	plt.show()
+	
+
+
 
 	return ret
 
@@ -158,25 +184,19 @@ def main(infile):
 	data = json.loads(open(infile).read())
 	data = strToDateTime(data)
 	# data, mean = avgRankingChangeOverTime(data, 10)
-
+	# print(len(data))
 	data = calcPrevAvg(data)
 	data = calcDTDChange(data)
-	print(len(data))
-	good_updates, bad_updates = findGoodBadUpdates(data, 0.5, 0.5)
+	rating_chg_mean, rating_chg_std_dev = ratingChangeStats(data)
+	print(rating_chg_mean, rating_chg_std_dev)
+	# print(rating_chg_mean, rating_chg_std_dev)
+	# print(len(data))
+	good_updates, bad_updates = findGoodBadUpdates(data, rating_chg_std_dev)
 	print(len(good_updates), len(bad_updates))
 	good_data = {app: data[app] for app in good_updates}
 	bad_data = {app: data[app] for app in bad_updates}
-	day_split = beforeAndAfter(good_data, 10)
-	keys = sorted(list(day_split.keys()))
-	values = [day_split[key] for key in keys]
-	plt.plot(keys, values)
-	print(keys, values)
-	plt.show()
-	# print(day_split)
+	good = beforeAndAfter(bad_data, 24)
 
-	
-	# data = calcDTDChange(data)
-	# data = calcPrevAvg(data)
 
 
 
