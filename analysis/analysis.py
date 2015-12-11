@@ -145,8 +145,11 @@ def beforeAndAfter(data, days):
 				if last_updated + timedelta(days=i) in data[app]["Ranking Change"]:
 					ret[i] += data[app]["Ranking Change"][last_updated + timedelta(days=i)]
 					counts[i] += 1
+	print(counts)
+	print(ret)
 	ret = {day: ct for day, ct in ret.items() if counts[day] > 3}
 	ret = {day: ct/counts[day] for day, ct in ret.items()}
+	print(ret)
 
 	return ret
 
@@ -159,11 +162,11 @@ def main(infile):
 	data = calcPrevAvg(data)
 	data = calcDTDChange(data)
 	print(len(data))
-	good_updates, bad_updates = findGoodBadUpdates(data, 0.5, 0.5)
+	good_updates, bad_updates = findGoodBadUpdates(data, 0.3, 0.3)
 	print(len(good_updates), len(bad_updates))
 	good_data = {app: data[app] for app in good_updates}
 	bad_data = {app: data[app] for app in bad_updates}
-	day_split = beforeAndAfter(good_data, 20)
+	day_split = beforeAndAfter(good_data, 10)
 	keys = sorted(list(day_split.keys()))
 	values = [day_split[key] for key in keys]
 	plt.plot(keys, values)
