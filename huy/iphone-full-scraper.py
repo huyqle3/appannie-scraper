@@ -243,7 +243,7 @@ while(check_date != datetime.strptime(args.end_date, '%Y-%m-%d')):
 						print(app_name + " matched.")
 						if("Current Version" not in apps[app_name]):
 							parse_detailed_metadata(row4, app_name)
-						# (apps[app_name])["Ranking"].update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
+						(apps[app_name])["Ranking"].update({check_date.strftime('%Y-%m-%d'): rank_counter[position]})
 						rank_counter[position] += 1
 						position += 1
 						break
