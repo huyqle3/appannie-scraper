@@ -5,10 +5,12 @@ Scripts to scrape AppAnnie for their mobile app data.
 ### Dependencies
 
 1. Beautifulsoup 4
+2. requests
 
 ```
 curl https://bootstrap.pypa.io/get-pip.py | python
 pip install beautifulsoup4
+pip install requests
 ```
 
 ### Steps
