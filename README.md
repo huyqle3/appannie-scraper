@@ -1,6 +1,6 @@
 # appannie-scraper
 
-Scripts to scrape AppAnnie for their mobile app data.
+AppAnnie is an analytics site that contains ratings, reviews, and the top ranking apps for Apple, Android, etc. Our scripts scrape AppAnnie for their iPhone app data. Check the data folder for our results.
 
 ### Dependencies
 
@@ -30,14 +30,12 @@ password
 iphone-full-scraper.py grabs full detailed metadata from specified dates.
 iphone-ranking-scraper.py grabs rankings from specified dates.
 
-iphone-full-scraper.py
-
 Example: The script takes the data already existing in iphone-ranking-from-2015-12-09-to-2015-06-08. It creates a JSON file with data from 2015-12-11 (inclusive) to 2015-11-11 (non-inclusive).
 ```
 python iphone-full-scraper.py --date 2015-12-11 --end_date 2015-11-11 --input_file iphone-ranking-from-2015-12-09-to-2015-06-08.json
 ```
 
-iphone-ranking-scraper.py
+iphone-ranking-scraper.py creates a day's app iphone ranking only.
 
 Example:
 Creates today's app iphone ranking data into a JSON file.
